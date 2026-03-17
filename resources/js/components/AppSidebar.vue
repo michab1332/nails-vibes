@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Instagram, FolderGit2, LayoutGrid } from 'lucide-vue-next';
+import { Instagram, LayoutGrid, Percent } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -22,6 +22,11 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: admin.dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Cennik',
+        href: admin.priceItems.index(),
+        icon: Percent,
     },
 ];
 
