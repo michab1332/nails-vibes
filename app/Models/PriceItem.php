@@ -21,6 +21,10 @@ class PriceItem extends Model
         'category' => PriceItemCategory::class,
     ];
 
+    protected $appends = [
+        'formatted_price',
+    ];
+
     public function getFormattedPriceAttribute(): string
     {
         $min = $this->price_min + 0;
