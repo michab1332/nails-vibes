@@ -4,9 +4,12 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\PriceItemController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\InspirationController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+
+    Route::get('/inspirations', [InspirationController::class, 'index'])->name('inspirations.index');
 
     Route::prefix('clients')->name('clients.')->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('index');
