@@ -9,6 +9,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('price-items')->name('price-items.')->group(function () {
         Route::get('/', [PriceItemController::class, 'index'])->name('index');
+        Route::get('/create', [PriceItemController::class, 'create'])->name('create');
+        Route::post('/', [PriceItemController::class, 'store'])->name('store');
+        Route::get('/{priceItem}/edit', [PriceItemController::class, 'edit'])->name('edit');
+        Route::put('/{priceItem}', [PriceItemController::class, 'update'])->name('update');
+        Route::delete('/{priceItem}', [PriceItemController::class, 'destroy'])->name('destroy');
     });
 });
 

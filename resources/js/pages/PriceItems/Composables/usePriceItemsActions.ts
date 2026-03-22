@@ -1,16 +1,42 @@
-import { PriceItem } from "@/types";
+import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import type { PriceItem } from "@/types";
+import admin from '@/routes/admin';
 
 export const usePriceItemsActions = () => {
+    const isDeleteDialogOpen = ref(false);
+    const itemToDelete = ref<PriceItem | null>(null);
+
     const editRow = (item: PriceItem) => {
-        console.log('edit', item);
+        router.visit(admin.priceItems.edit(item).url);
     }
 
-    const deleteRow = (item: PriceItem) => {
-        console.log('delete', item);
+    const askDeleteRow = (item: PriceItem) => {
+        itemToDelete.value = item;
+        isDeleteDialogOpen.value = true;
+    }
+
+    const confirmDelete = () => {
+        if (itemToDelete.value) {
+            router.delete(admin.priceItems.destroy(itemToDelete.value).url, {
+                onSuccess: () => {
+                    isDeleteDialogOpen.value = false;
+                    itemToDelete.value = null;
+                }
+            });
+        }
+    }
+
+    const createItem = () => {
+        router.visit(admin.priceItems.create().url);
     }
 
     return {
         editRow,
-        deleteRow
+        askDeleteRow,
+        confirmDelete,
+        createItem,
+        isDeleteDialogOpen,
+        itemToDelete
     };
 }
