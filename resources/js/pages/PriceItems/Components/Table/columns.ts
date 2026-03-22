@@ -15,8 +15,6 @@ export const columns: ColumnDef<PriceItem>[] = [
         header: 'Kategoria',
         cell: ({ row }) => {
             const category = row.getValue('category') as string;
-            // W Vue 3 dla komponentów takich jak Badge, sloty powinny być funkcjami
-            // To eliminuje warning "Non-function value encountered for default slot"
             return h(Badge, { variant: 'outline', class: 'font-normal text-xs' }, {
                 default: () => category
             });
@@ -32,9 +30,9 @@ export const columns: ColumnDef<PriceItem>[] = [
     },
     {
         id: 'actions',
-        cell: ({ row, table }) => h(DataTableRowActions, { 
+        cell: ({ row, table }) => h(DataTableRowActions, {
             priceItem: row.original,
-            tableMeta: table.options.meta 
+            tableMeta: table.options.meta
         }),
     },
 ];
