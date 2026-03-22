@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import InputError from '@/components/InputError.vue';
-import type { PriceItem, PriceItemCategory } from '@/types';
+import type { PriceItem } from '@/types';
 import { usePriceItemForm } from './usePriceItemForm';
 
 const props = defineProps<{
