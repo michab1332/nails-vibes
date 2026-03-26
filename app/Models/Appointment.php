@@ -22,6 +22,27 @@ class Appointment extends Model
         'status' => AppointmentStatus::class,
     ];
 
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['scope'] ?? 'current', function ($query, $scope) use ($filters) {
+            if ($scope === 'current' && !isset($filters['from_date'])) {
+                $query->where('start_time', '>=', now()->startOfDay());
+            }
+        })->when($filters['from_date'] ?? null, function ($query, $date) {
+            $query->whereDate('start_time', '>=', $date);
+        })->when($filters['to_date'] ?? null, function ($query, $date) {
+            $query->whereDate('start_time', '<=', $date);
+        })->when($filters['clients'] ?? null, function ($query, $clients) {
+            $query->whereIn('client_id', (array) $clients);
+        })->when($filters['statuses'] ?? null, function ($query, $statuses) {
+            $query->whereIn('status', (array) $statuses);
+        })->when($filters['search'] ?? null, function ($query, $search) {
+            $query->whereHas('client', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        });
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

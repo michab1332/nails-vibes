@@ -17,9 +17,7 @@ class AppointmentController extends Controller
 
     public function index(): Response
     {
-        return Inertia::render("$this->page/Index", [
-            'appointments' => $this->appointmentService->index(),
-        ]);
+        return Inertia::render("$this->page/Index", $this->appointmentService->index(request()->all()));
     }
 
     public function create(): Response

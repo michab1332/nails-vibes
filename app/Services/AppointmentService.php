@@ -15,11 +15,17 @@ class AppointmentService extends BaseService
         $this->model = $model;
     }
 
-    public function index()
+    public function index(array $filters = []): array
     {
-        return $this->model->with(['client', 'priceItems'])
-            ->orderBy('start_time', 'asc')
-            ->get();
+        return [
+            'appointments' => $this->model->with(['client', 'priceItems'])
+                ->filter($filters)
+                ->orderBy('start_time', 'asc')
+                ->get(),
+            'clients' => Client::select('id', 'name', 'phone_number')->get(),
+            'statuses' => AppointmentStatus::cases(),
+            'filters' => $filters,
+        ];
     }
 
     public function create(): array

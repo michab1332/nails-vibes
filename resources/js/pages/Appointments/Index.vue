@@ -15,11 +15,15 @@ import {
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import admin from '@/routes/admin';
-import type { Appointment, BreadcrumbItem } from '@/types';
+import type { Appointment, BreadcrumbItem, Client, AppointmentStatus } from '@/types';
 import AppointmentCard from './Components/AppointmentCard.vue';
+import AppointmentFilters from './Components/AppointmentFilters.vue';
 
 const props = defineProps<{
     appointments: Appointment[];
+    clients: Client[];
+    statuses: AppointmentStatus[];
+    filters: any;
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -88,6 +92,12 @@ const deleteAppointment = () => {
                     </Link>
                 </Button>
             </div>
+
+            <AppointmentFilters 
+                :filters="filters" 
+                :clients="clients" 
+                :statuses="statuses" 
+            />
 
             <div v-if="appointments.length > 0" class="space-y-8">
                 <div v-for="(group, dateLabel) in groupedAppointments" :key="dateLabel" class="space-y-4">
