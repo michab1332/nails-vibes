@@ -74,12 +74,12 @@ import {
     PaginationPrevious,
 } from '@/components/ui/pagination';
 import AppLayout from '@/layouts/AppLayout.vue';
-import admin from '@/routes/admin';
 import DataTable from '@/pages/PriceItems/Components/Table/DataTable.vue';
-import { columns } from './Components/Table/columns';
+import admin from '@/routes/admin';
 import type { BreadcrumbItem, Client } from '@/types';
-import { useClientsActions } from "./Composables/useClientsActions";
 import DeleteClientModal from './Components/DeleteClientModal.vue';
+import { columns } from './Components/Table/columns';
+import { useClientsActions } from "./Composables/useClientsActions";
 
 const {
     editRow,

@@ -5,11 +5,22 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PriceItemController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\InspirationController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\DashboardController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/inspirations', [InspirationController::class, 'index'])->name('inspirations.index');
+
+    Route::prefix('appointments')->name('appointments.')->group(function () {
+        Route::get('/', [AppointmentController::class, 'index'])->name('index');
+        Route::get('/create', [AppointmentController::class, 'create'])->name('create');
+        Route::post('/', [AppointmentController::class, 'store'])->name('store');
+        Route::get('/{appointment}/edit', [AppointmentController::class, 'edit'])->name('edit');
+        Route::put('/{appointment}', [AppointmentController::class, 'update'])->name('update');
+        Route::delete('/{appointment}', [AppointmentController::class, 'destroy'])->name('destroy');
+    });
 
     Route::prefix('clients')->name('clients.')->group(function () {
         Route::get('/', [ClientController::class, 'index'])->name('index');

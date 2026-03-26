@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import InputError from '@/components/InputError.vue';
 import type { PriceItem } from '@/types';
 import { usePriceItemForm } from './usePriceItemForm';
 
@@ -23,8 +23,14 @@ const { form, submit } = usePriceItemForm(props.priceItem);
 // Normalize categories to { label, value }
 const normalizedCategories = Array.isArray(props.categories)
     ? props.categories.map((c: any) => {
-          if (typeof c === 'object' && c.name && c.value) return { label: c.name, value: c.value };
-          if (typeof c === 'object' && c.label && c.value) return c;
+          if (typeof c === 'object' && c.name && c.value) {
+return { label: c.name, value: c.value };
+}
+
+          if (typeof c === 'object' && c.label && c.value) {
+return c;
+}
+
           return { label: c, value: c };
       })
     : [];

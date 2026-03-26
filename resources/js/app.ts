@@ -4,8 +4,12 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import '../css/app.css';
 import { initializeTheme } from '@/composables/useAppearance';
+import { useRegisterSW } from 'virtual:pwa-register/vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// Register service worker for PWA support
+useRegisterSW();
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

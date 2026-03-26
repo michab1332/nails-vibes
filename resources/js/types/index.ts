@@ -3,3 +3,4 @@ export * from './navigation';
 export * from './ui';
 export * from './price-item';
 export * from './client';
+export * from './appointment';

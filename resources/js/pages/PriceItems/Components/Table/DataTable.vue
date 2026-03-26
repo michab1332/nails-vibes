@@ -23,8 +23,12 @@ const props = defineProps<{
 }>();
 
 const table = useVueTable({
-    get data() { return props.data },
-    get columns() { return props.columns },
+    get data() {
+ return props.data 
+},
+    get columns() {
+ return props.columns 
+},
     getCoreRowModel: getCoreRowModel(),
     meta: {
         edit: (row: TData) => props.onEdit?.(row),

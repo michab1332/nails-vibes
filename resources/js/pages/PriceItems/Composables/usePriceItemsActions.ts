@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import type { PriceItem } from "@/types";
 import admin from '@/routes/admin';
+import type { PriceItem } from "@/types";
 
 export const usePriceItemsActions = () => {
     const isDeleteDialogOpen = ref(false);
