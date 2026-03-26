@@ -2,15 +2,16 @@
 import { ref, watch, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Search, X, Calendar as CalendarIcon, Filter, FilterX, Check } from 'lucide-vue-next';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { RangeCalendar } from '@/components/ui/range-calendar';
 import { Badge } from '@/components/ui/badge';
 import type { Client, AppointmentStatus } from '@/types';
 import admin from '@/routes/admin';
+import { CalendarDate, type DateValue } from '@internationalized/date';
 
 const props = defineProps<{
     filters: {
@@ -41,7 +42,23 @@ const localFilters = ref({
     statuses: props.filters.statuses ? (Array.isArray(props.filters.statuses) ? props.filters.statuses : [props.filters.statuses]) : [],
 });
 
-// Watch for external changes (URL updates)
+// Helper to convert string date to CalendarDate for the UI component
+const toCalendarDate = (dateStr: string) => {
+    if (!dateStr) return undefined;
+    try {
+        const d = new Date(dateStr);
+        return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    } catch (e) {
+        return undefined;
+    }
+};
+
+const dateRange = ref({
+    start: toCalendarDate(localFilters.value.from_date),
+    end: toCalendarDate(localFilters.value.to_date),
+});
+
+// Sync local filters with props (URL updates)
 watch(() => props.filters, (newFilters) => {
     localFilters.value.search = newFilters.search || '';
     localFilters.value.scope = newFilters.scope || 'current';
@@ -49,6 +66,12 @@ watch(() => props.filters, (newFilters) => {
     localFilters.value.to_date = newFilters.to_date || '';
     localFilters.value.clients = parseClientIds(newFilters.clients);
     localFilters.value.statuses = newFilters.statuses ? (Array.isArray(newFilters.statuses) ? newFilters.statuses : [newFilters.statuses]) : [];
+    
+    // Also update the date range UI
+    dateRange.value = {
+        start: toCalendarDate(localFilters.value.from_date),
+        end: toCalendarDate(localFilters.value.to_date),
+    };
 }, { deep: true });
 
 const clientSearch = ref('');
@@ -120,18 +143,27 @@ const clearFilters = () => {
         clients: [],
         statuses: [],
     };
+    dateRange.value = { start: undefined, end: undefined };
     updateFilters();
 };
 
-const setDateRange = (date: any) => {
-    if (date?.from) localFilters.value.from_date = format(date.from, 'yyyy-MM-dd');
-    if (date?.to) localFilters.value.to_date = format(date.to, 'yyyy-MM-dd');
-    
-    if (!date?.from) {
+const handleDateUpdate = (range: { start: DateValue | undefined, end: DateValue | undefined }) => {
+    if (range.start) {
+        localFilters.value.from_date = format(new Date(range.start.year, range.start.month - 1, range.start.day), 'yyyy-MM-dd');
+    } else {
         localFilters.value.from_date = '';
+    }
+
+    if (range.end) {
+        localFilters.value.to_date = format(new Date(range.end.year, range.end.month - 1, range.end.day), 'yyyy-MM-dd');
+    } else {
         localFilters.value.to_date = '';
     }
-    updateFilters();
+
+    // Only update if we have a full range or if it was cleared
+    if ((range.start && range.end) || (!range.start && !range.end)) {
+        updateFilters();
+    }
 };
 
 const hasActiveFilters = computed(() => {
@@ -179,7 +211,7 @@ const hasActiveFilters = computed(() => {
                 </button>
             </div>
 
-            <!-- Date -->
+            <!-- Date Range -->
             <div class="md:col-span-2 lg:col-span-2">
                 <Popover>
                     <PopoverTrigger asChild>
@@ -187,19 +219,19 @@ const hasActiveFilters = computed(() => {
                             <CalendarIcon class="mr-2 h-4 w-4 shrink-0 text-muted-foreground" />
                             <span class="truncate text-xs">
                                 <template v-if="localFilters.from_date">
-                                    {{ format(new Date(localFilters.from_date), 'dd.MM') }} - 
-                                    {{ localFilters.to_date ? format(new Date(localFilters.to_date), 'dd.MM') : '...' }}
+                                    {{ format(parseISO(localFilters.from_date), 'dd.MM') }} - 
+                                    {{ localFilters.to_date ? format(parseISO(localFilters.to_date), 'dd.MM') : '...' }}
                                 </template>
                                 <template v-else>Zakres dat</template>
                             </span>
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent class="w-auto p-0" align="end">
-                        <Calendar
-                            mode="range"
-                            :selected="{ from: localFilters.from_date ? new Date(localFilters.from_date) : undefined, to: localFilters.to_date ? new Date(localFilters.to_date) : undefined }"
-                            @update:selected="setDateRange"
+                        <RangeCalendar
+                            v-model="dateRange"
+                            @update:model-value="handleDateUpdate"
                             initial-focus
+                            :number-of-months="1"
                         />
                     </PopoverContent>
                 </Popover>
