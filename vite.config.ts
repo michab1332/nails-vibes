@@ -31,9 +31,11 @@ export default defineConfig({
                 name: 'Nails Planner',
                 short_name: 'NailsPlanner',
                 description: 'System zarządzania salonem kosmetycznym',
-                theme_color: '#db2777', // pink-600
+                theme_color: '#db2777',
                 background_color: '#ffffff',
                 display: 'standalone',
+                scope: '/',
+                start_url: '/?standalone=true',
                 orientation: 'portrait',
                 icons: [
                     {
@@ -45,7 +47,13 @@ export default defineConfig({
                         src: '/apple-touch-icon.png',
                         sizes: '512x512',
                         type: 'image/png',
-                        purpose: 'any maskable'
+                        purpose: 'any'
+                    },
+                    {
+                        src: '/apple-touch-icon.png',
+                        sizes: '512x512',
+                        type: 'image/png',
+                        purpose: 'maskable'
                     }
                 ]
             },
