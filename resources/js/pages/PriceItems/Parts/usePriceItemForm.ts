@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/vue3';
-import type { PriceItem } from '@/types';
 import admin from '@/routes/admin';
+import type { PriceItem } from '@/types';
 
 export const usePriceItemForm = (priceItem?: PriceItem) => {
     const form = useForm({

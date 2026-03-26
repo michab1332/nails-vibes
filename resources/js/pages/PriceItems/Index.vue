@@ -35,12 +35,12 @@ import { Head } from '@inertiajs/vue3';
 import { Plus } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
-import admin from '@/routes/admin';
-import DataTable from './Components/Table/DataTable.vue';
-import { columns } from './Components/Table/columns';
-import type { BreadcrumbItem, PriceItem } from '@/types';
 import { usePriceItemsActions } from "@/pages/PriceItems/Composables/usePriceItemsActions";
+import admin from '@/routes/admin';
+import type { BreadcrumbItem, PriceItem } from '@/types';
 import DeletePriceItemModal from './Components/DeletePriceItemModal.vue';
+import { columns } from './Components/Table/columns';
+import DataTable from './Components/Table/DataTable.vue';
 
 const {
     editRow,

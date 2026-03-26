@@ -1,7 +1,7 @@
-import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
-import type { PriceItem } from '@/types';
+import { h } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import type { PriceItem } from '@/types';
 import DataTableRowActions from './DataTableRowActions.vue';
 
 export const columns: ColumnDef<PriceItem>[] = [
@@ -15,6 +15,7 @@ export const columns: ColumnDef<PriceItem>[] = [
         header: 'Kategoria',
         cell: ({ row }) => {
             const category = row.getValue('category') as string;
+
             return h(Badge, { variant: 'outline', class: 'font-normal text-xs' }, {
                 default: () => category
             });
@@ -25,6 +26,7 @@ export const columns: ColumnDef<PriceItem>[] = [
         header: () => h('div', { class: 'text-right' }, 'Cena'),
         cell: ({ row }) => {
             const price = row.getValue('formatted_price') as string;
+
             return h('div', { class: 'text-right font-semibold text-sm' }, price);
         },
     },

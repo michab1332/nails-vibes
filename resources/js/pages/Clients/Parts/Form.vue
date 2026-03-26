@@ -1,17 +1,19 @@
 <script setup lang="ts">
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import InputError from '@/components/InputError.vue';
 import type { Client } from '@/types';
 import { useClientForm } from './useClientForm';
 
 const props = defineProps<{
     client?: Client;
+    onSuccess?: () => void;
+    redirectBack?: boolean;
 }>();
 
-const { form, submit } = useClientForm(props.client);
+const { form, submit } = useClientForm(props.client, props.onSuccess, props.redirectBack);
 </script>
 
 <template>

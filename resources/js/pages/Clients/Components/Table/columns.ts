@@ -1,5 +1,5 @@
-import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
+import { h } from 'vue';
 import type { Client } from '@/types';
 import DataTableRowActions from './DataTableRowActions.vue';
 

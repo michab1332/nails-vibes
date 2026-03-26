@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import type { Client } from "@/types";
 import admin from '@/routes/admin';
+import type { Client } from "@/types";
 
 export const useClientsActions = () => {
     const isDeleteDialogOpen = ref(false);

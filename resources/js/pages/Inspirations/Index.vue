@@ -74,9 +74,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Head } from '@inertiajs/vue3';
 import { Search, ImageOff, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';

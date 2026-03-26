@@ -36,7 +36,7 @@ class InspirationService
 
             $allPins = [];
             foreach ($responses as $sourceIndex => $response) {
-                if ($response->successful()) {
+                if ($response instanceof \Illuminate\Http\Client\Response && $response->successful()) {
                     $sourceKey = $this->sources[$sourceIndex];
                     $pins = $this->parseRss($response->body());
                     

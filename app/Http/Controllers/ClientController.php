@@ -31,6 +31,10 @@ class ClientController extends Controller
     {
         $this->clientService->store($request->validated());
 
+        if ($request->query('redirect') === 'back') {
+            return redirect()->back();
+        }
+
         return redirect()->route('admin.clients.index');
     }
 
@@ -44,6 +48,10 @@ class ClientController extends Controller
     public function update(ClientRequest $request, Client $client): RedirectResponse
     {
         $this->clientService->update($client, $request->validated());
+
+        if ($request->query('redirect') === 'back') {
+            return redirect()->back();
+        }
 
         return redirect()->route('admin.clients.index');
     }
