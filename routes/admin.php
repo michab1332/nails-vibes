@@ -6,9 +6,10 @@ use App\Http\Controllers\PriceItemController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\InspirationController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\DashboardController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/inspirations', [InspirationController::class, 'index'])->name('inspirations.index');
 
