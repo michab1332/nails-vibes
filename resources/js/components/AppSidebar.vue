@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { Instagram, LayoutGrid, Percent, Users, Sparkles, Calendar } from 'lucide-vue-next';
+import { Instagram, LayoutGrid, Percent, Users, Sparkles, Calendar, CalendarDays } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -27,6 +27,11 @@ const mainNavItems: NavItem[] = [
         title: 'Wizyty',
         href: admin.appointments.index(),
         icon: Calendar,
+    },
+    {
+        title: 'Kalendarz',
+        href: admin.appointments.calendar(),
+        icon: CalendarDays,
     },
     {
         title: 'Inspiracje',
