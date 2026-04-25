@@ -12,6 +12,8 @@ export interface CalendarContext {
   setCurrentDate: (date: Date) => void;
   /** Select a specific date */
   setSelectedDate: (date: Date) => void;
+  /** Triggered when a date is held (long press) */
+  onDateHold: (date: Date) => void;
   /** Switch between view modes (month, day) */
   setViewMode: (mode: CalendarViewMode) => void;
   /** Move to the next period (month or day) */

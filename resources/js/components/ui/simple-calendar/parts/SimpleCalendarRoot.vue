@@ -27,6 +27,7 @@ const emit = defineEmits<{
   (e: 'update:modelValue', date: Date): void;
   (e: 'update:viewMode', mode: CalendarViewMode): void;
   (e: 'dateSelect', date: Date): void;
+  (e: 'dateHold', date: Date): void;
 }>();
 
 // Initialize the reactive state
@@ -36,6 +37,10 @@ const { state, setCurrentDate, setSelectedDate, setViewMode, next, prev } = useC
   viewMode: props.viewMode,
   config: props.config,
 });
+
+const onDateHold = (date: Date) => {
+  emit('dateHold', date);
+};
 
 // Update state when props change (External -> Internal)
 watch(() => props.modelValue, (newDate) => {
@@ -67,6 +72,7 @@ provide(CALENDAR_CONTEXT_KEY, {
   state,
   setCurrentDate,
   setSelectedDate,
+  onDateHold,
   setViewMode,
   next,
   prev,

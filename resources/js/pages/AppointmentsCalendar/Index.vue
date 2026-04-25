@@ -24,6 +24,14 @@ import type { Client, PriceItem } from '@/types';
 import AppointmentStatusBadge from '@/components/appointments/AppointmentStatusBadge.vue';
 import AppointmentFormModal from '@/components/appointments/AppointmentFormModal.vue';
 import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
@@ -60,6 +68,23 @@ const openEditModal = (apt: Appointment) => {
   isModalOpen.value = true;
 };
 
+// Deletion logic
+const appointmentToDelete = ref<number | null>(null);
+
+const confirmDelete = (id: number) => {
+    appointmentToDelete.value = id;
+};
+
+const deleteAppointment = () => {
+    if (appointmentToDelete.value) {
+        router.delete(admin.appointments.destroy(appointmentToDelete.value), {
+            onSuccess: () => {
+                appointmentToDelete.value = null;
+            },
+        });
+    }
+};
+
 const calendarEvents = computed<CalendarEvent<Appointment>[]>(() => 
   props.appointments.map(apt => ({
     id: apt.id,
@@ -92,6 +117,10 @@ const selectedDayAppointments = computed(() => {
 const formatTime = (isoString: string) => {
   return format(parseISO(isoString), 'HH:mm');
 };
+
+const handleDateHold = (date: Date) => {
+  console.log('Date held:', format(date, 'yyyy-MM-dd'));
+};
 </script>
 
 <template>
@@ -103,6 +132,7 @@ const formatTime = (isoString: string) => {
         v-model="selectedDate" 
         :events="calendarEvents"
         :config="{ locale: pl, weekStartsOn: 1 }"
+        @date-hold="handleDateHold"
       >
         <SimpleCalendarHeader v-slot="{ label, next, prev, today }">
           <div class="flex items-center justify-between px-4 py-3 border-b sticky top-0 bg-background z-10">
@@ -169,7 +199,7 @@ const formatTime = (isoString: string) => {
                     <DropdownMenuItem @click="openEditModal(apt)">
                       Edytuj
                     </DropdownMenuItem>
-                    <DropdownMenuItem class="text-destructive" @click="() => { if(confirm('Na pewno usunąć?')) router.delete(admin.appointments.destroy(apt.id)) }">
+                    <DropdownMenuItem class="text-destructive" @click="confirmDelete(apt.id)">
                       Usuń
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -180,6 +210,7 @@ const formatTime = (isoString: string) => {
         </div>
       </SimpleCalendarRoot>
 
+      <!-- Create/Edit Modal -->
       <AppointmentFormModal 
         v-model:open="isModalOpen"
         :appointment="selectedAppointment"
@@ -188,6 +219,26 @@ const formatTime = (isoString: string) => {
         :statuses="statuses"
         :initial-date="selectedDate"
       />
+
+      <!-- Delete Confirmation Modal -->
+      <Dialog :open="!!appointmentToDelete" @update:open="appointmentToDelete = null">
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>Czy na pewno chcesz usunąć tę wizytę?</DialogTitle>
+                  <DialogDescription>
+                      Ta operacja jest nieodwracalna. Wszystkie dane dotyczące tej wizyty zostaną trwale usunięte.
+                  </DialogDescription>
+              </DialogHeader>
+              <DialogFooter class="gap-2 sm:gap-0">
+                  <Button variant="outline" @click="appointmentToDelete = null">
+                      Anuluj
+                  </Button>
+                  <Button variant="destructive" @click="deleteAppointment">
+                      Usuń wizytę
+                  </Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
     </div>
   </AppLayout>
 </template>
