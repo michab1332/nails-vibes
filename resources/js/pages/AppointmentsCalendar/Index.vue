@@ -20,7 +20,9 @@ import {
 import { pl } from 'date-fns/locale';
 import { format, startOfMonth, endOfMonth, isSameDay, parseISO } from 'date-fns';
 import { Appointment } from '@/types/appointment';
+import type { Client, PriceItem } from '@/types';
 import AppointmentStatusBadge from '@/components/appointments/AppointmentStatusBadge.vue';
+import AppointmentFormModal from '@/components/appointments/AppointmentFormModal.vue';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -30,6 +32,9 @@ import {
 
 interface Props {
   appointments: Appointment[];
+  clients: Client[];
+  priceItems: PriceItem[];
+  statuses: string[];
   filters: any;
 }
 
@@ -40,6 +45,20 @@ const breadcrumbs = [
 ];
 
 const selectedDate = ref(new Date());
+
+// Modal state
+const isModalOpen = ref(false);
+const selectedAppointment = ref<Appointment | null>(null);
+
+const openCreateModal = () => {
+  selectedAppointment.value = null;
+  isModalOpen.value = true;
+};
+
+const openEditModal = (apt: Appointment) => {
+  selectedAppointment.value = apt;
+  isModalOpen.value = true;
+};
 
 const calendarEvents = computed<CalendarEvent<Appointment>[]>(() => 
   props.appointments.map(apt => ({
@@ -102,11 +121,9 @@ const formatTime = (isoString: string) => {
                   <ChevronRight class="h-4 w-4" />
                 </Button>
               </div>
-              <Link :href="admin.appointments.create()">
-                <Button size="icon" class="h-8 w-8 rounded-full">
-                  <Plus class="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button size="icon" class="h-8 w-8 rounded-full" @click="openCreateModal">
+                <Plus class="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </SimpleCalendarHeader>
@@ -149,7 +166,7 @@ const formatTime = (isoString: string) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem @click="router.visit(admin.appointments.edit(apt.id))">
+                    <DropdownMenuItem @click="openEditModal(apt)">
                       Edytuj
                     </DropdownMenuItem>
                     <DropdownMenuItem class="text-destructive" @click="() => { if(confirm('Na pewno usunąć?')) router.delete(admin.appointments.destroy(apt.id)) }">
@@ -162,6 +179,15 @@ const formatTime = (isoString: string) => {
           </div>
         </div>
       </SimpleCalendarRoot>
+
+      <AppointmentFormModal 
+        v-model:open="isModalOpen"
+        :appointment="selectedAppointment"
+        :clients="clients"
+        :price-items="priceItems"
+        :statuses="statuses"
+        :initial-date="selectedDate"
+      />
     </div>
   </AppLayout>
 </template>

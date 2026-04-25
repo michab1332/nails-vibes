@@ -42,6 +42,10 @@ const form = useForm({
 const submit = () => {
     form.post(admin.appointments.store());
 };
+
+const handleCancel = () => {
+    window.history.back();
+};
 </script>
 
 <template>
@@ -63,6 +67,7 @@ const submit = () => {
                         :price-items="priceItems"
                         :statuses="statuses"
                         @submit="submit"
+                        @cancel="handleCancel"
                     />
                 </CardContent>
             </Card>

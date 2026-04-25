@@ -34,7 +34,7 @@ class AppointmentController extends Controller
     {
         $this->appointmentService->store($request->validated());
 
-        return redirect()->route('admin.appointments.index');
+        return $this->smartRedirect();
     }
 
     public function edit(Appointment $appointment): Response
@@ -46,13 +46,27 @@ class AppointmentController extends Controller
     {
         $this->appointmentService->update($appointment, $request->validated());
 
-        return redirect()->route('admin.appointments.index');
+        return $this->smartRedirect();
     }
 
     public function destroy(Appointment $appointment): RedirectResponse
     {
         $this->appointmentService->destroy($appointment);
 
-        return redirect()->route('admin.appointments.index');
+        return redirect()->back();
+    }
+
+    private function smartRedirect(): RedirectResponse
+    {
+        $previousUrl = url()->previous();
+
+        // If we are coming from a dedicated full-page form, go to the list.
+        // Dedicated pages end with /create or /edit
+        if (preg_match('/\/(create|edit)$/', $previousUrl)) {
+            return redirect()->route('admin.appointments.index');
+        }
+
+        // In all other cases (Modal on Calendar, Dashboard, etc.), just refresh the current page.
+        return redirect()->back();
     }
 }

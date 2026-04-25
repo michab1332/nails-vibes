@@ -23,7 +23,8 @@ class AppointmentService extends BaseService
                 ->orderBy('start_time', 'asc')
                 ->get(),
             'clients' => Client::select('id', 'name', 'phone_number')->get(),
-            'statuses' => AppointmentStatus::cases(),
+            'priceItems' => PriceItem::select('id', 'name', 'price_min', 'price_max')->get(),
+            'statuses' => array_map(fn($status) => $status->value, AppointmentStatus::cases()),
             'filters' => $filters,
         ];
     }
