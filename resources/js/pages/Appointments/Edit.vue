@@ -37,6 +37,10 @@ const form = useForm({
 const submit = () => {
     form.put(admin.appointments.update(props.appointment.id));
 };
+
+const handleCancel = () => {
+    window.history.back();
+};
 </script>
 
 <template>
@@ -59,6 +63,7 @@ const submit = () => {
                         :statuses="statuses"
                         is-edit
                         @submit="submit"
+                        @cancel="handleCancel"
                     />
                 </CardContent>
             </Card>

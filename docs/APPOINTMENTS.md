@@ -41,12 +41,16 @@ resources/js/
 │   └── appointments/                 # Nowy folder na komponenty domenowe
 │       ├── AppointmentCard.vue       # Komponent kafelka wizyty (Mobile-first UI)
 │       ├── AppointmentForm.vue       # Formularz dodawania/edycji wizyty
+│       ├── AppointmentFormModal.vue  # Wrapper formularza w oknie dialogowym
 │       └── AppointmentStatusBadge.vue# Komponent odznaki statusu (używa shadcn Badge)
+├── components/ui/simple-calendar/    # Headlessowa biblioteka kalendarza
 └── pages/
-    └── Appointments/                 # Nowy folder stron
-        ├── Index.vue                 # Główny widok listy wizyt (kafelki, grupowanie po dacie)
-        ├── Create.vue                # Widok dodawania
-        └── Edit.vue                  # Widok edycji
+    ├── Appointments/                 # Widok listy wizyt
+    │   ├── Index.vue
+    │   ├── Create.vue
+    │   └── Edit.vue
+    └── AppointmentsCalendar/         # Widok interaktywnego terminarza
+        └── Index.vue
 ```
 
 ---
@@ -73,136 +77,31 @@ Tabela łącząca wiele usług (PriceItem) z jedną wizytą (Appointment). Pozwa
 ## 3. Szczegóły Implementacji Backendowej
 
 ### 3.1 `App\Enums\AppointmentStatus`
-```php
-namespace App\Enums;
+Standardowy Enum obsługujący stany wizyty: `SCHEDULED`, `COMPLETED`, `CANCELLED`, `NO_SHOW`.
 
-enum AppointmentStatus: string
-{
-    case SCHEDULED = 'Zaplanowana';
-    case COMPLETED = 'Zakończona';
-    case CANCELLED = 'Anulowana';
-    case NO_SHOW = 'Nieobecność';
-
-    public static function labels(): array { /* ... */ }
-    public function color(): string { /* Zwraca wariant koloru dla frontendu np. 'default', 'success', 'destructive', 'secondary' wg nazw z shadcn */ }
-}
-```
-
-### 3.2 `App\Models\Appointment`
-*   **Fillable**: `['client_id', 'start_time', 'status', 'total_price', 'notes']`
-*   **Casts**:
-    *   `start_time` => `'datetime'`
-    *   `status` => `AppointmentStatus::class`
-*   **Relacje**:
-    *   `client()`: `return $this->belongsTo(Client::class);`
-    *   `priceItems()`: `return $this->belongsToMany(PriceItem::class);`
-
-### 3.3 `App\Http\Requests\AppointmentRequest`
-*   `client_id`: `['required', 'exists:clients,id']`
-*   `start_time`: `['required', 'date']` (Można dodać `after_or_equal:now` dla tworzenia, ale przy edycji może wymagać ostrożności).
-*   `status`: `['required', Rule::enum(AppointmentStatus::class)]`
-*   `total_price`: `['required', 'numeric', 'min:0']`
-*   `notes`: `['nullable', 'string']`
-*   `price_items`: `['nullable', 'array']`
-*   `price_items.*`: `['exists:price_items,id']`
-
-### 3.4 `App\Services\AppointmentService`
-Klasa rozszerzająca `BaseService`.
-*   `__construct(Appointment $model)`
-*   `index()`: Zwraca wizyty posortowane po `start_time` rosnąco, używa `with(['client', 'priceItems'])`.
-*   `store(array $data)`:
-    *   Używa `DB::transaction`.
-    *   Tworzy wizytę: `$appointment = $this->model->create($data)`.
-    *   Jeśli istnieje tablica `$data['price_items']`, synchronizuje usługi: `$appointment->priceItems()->sync($data['price_items'])`.
-    *   Zwraca `$appointment`.
-*   `update(Appointment $appointment, array $data)`:
-    *   Używa `DB::transaction`.
-    *   Aktualizuje dane podstawowe.
-    *   Synchronizuje usługi za pomocą `$appointment->priceItems()->sync(...)`.
-
-### 3.5 `App\Http\Controllers\AppointmentController`
-Standardowy kontroler Inertia.
-*   Metody: `index`, `create`, `store`, `edit`, `update`, `destroy`.
-*   Do widoków `create` i `edit` musi przekazywać listę klientek (`Client::select('id', 'name', 'phone_number')->get()`) oraz cennik (`PriceItem::select('id', 'name', 'price_min', 'price_max')->get()`), aby formularz mógł je wyświetlić.
+### 3.2 `App\Http\Controllers\AppointmentController`
+Obsługuje inteligentne przekierowania (`smartRedirect`). Jeśli akcja (store/update) pochodzi z modala (np. na kalendarzu), system wykonuje `back()`, odświeżając dane bez opuszczania strony. Jeśli pochodzi z pełnej strony formularza, wraca do listy.
 
 ---
 
-## 4. Szczegóły Implementacji Frontendowej
+## 4. Widok Kalendarza (iOS Style)
 
-### 4.1 Typy (TypeScript) - `resources/js/types/appointment.ts`
-```typescript
-import { Client, PriceItem } from './index'; // założenie istniejących typów
+Dla zapewnienia najlepszego UX na urządzeniach mobilnych, wdrożono dedykowany widok terminarza pod trasą `/admin/appointments/calendar`.
 
-export enum AppointmentStatus {
-    Scheduled = 'Zaplanowana',
-    Completed = 'Zakończona',
-    Cancelled = 'Anulowana',
-    NoShow = 'Nieobecność'
-}
+### 4.1 Implementacja "SimpleCalendar"
+Kalendarz został zbudowany jako niezależna, otypowana w TypeScript biblioteka Headless UI.
+*   **Headless architecture**: Cała logika dat (date-fns) i stanu (useCalendarState) jest oddzielona od warstwy prezentacji.
+*   **Lazy Loading**: Przy zmianie miesiąca system dociąga z bazy danych tylko wizyty dla wybranego zakresu dat, co zapewnia wysoką wydajność.
+*   **Mobile Interactivity**: Obsługa "Long Press" (przytrzymanie) z natywnym feedbackiem wizualnym (animacja skali).
 
-export interface Appointment {
-    id: number;
-    client_id: number;
-    client: Client;
-    price_items: PriceItem[];
-    start_time: string; // ISO string
-    status: AppointmentStatus;
-    total_price: number | string;
-    notes: string | null;
-}
-```
-
-### 4.2 Logika Ceny (Composable) - `resources/js/composables/useAppointmentPrice.ts`
-Zadaniem tego hooka jest obsługa dynamicznego pola "Cena" na formularzu.
-*   **Wejście**: Referencja do tablicy wybranych `PriceItem` oraz referencja do zadeklarowanej przez użytkownika ceny.
-*   **Logika (`watch`)**: Gdy użytkownik zaznacza/odznacza usługi z cennika, system podlicza sumę ich `price_min`.
-*   **Ochrona przed nadpisaniem (Dirty Flag)**: Jeśli użytkownik *ręcznie* kliknie w pole "Cena" i wpisze własną wartość (np. rabat), system podnosi flagę `isDirtyPrice = true` i przestaje automatycznie podliczać cenę przy zmianie usług (chyba że pole z ceną zostanie wyczyszczone).
-*   **Eksport**: Zwraca wyliczoną sumę, metodę do ręcznego resetowania oraz aktualną kwotę.
-
-### 4.3 Komponenty UI (`resources/js/components/appointments/`)
-
-#### 1. `AppointmentStatusBadge.vue`
-*   Używa `import { Badge } from '@/components/ui/badge'`.
-*   Przyjmuje prop `status` typu `AppointmentStatus`.
-*   Mapuje statusy na warianty kolorystyczne Badge'a (np. 'default', 'destructive', 'outline').
-
-#### 2. `AppointmentCard.vue`
-*   **Design**: Minimalistyczny kafelek. Przystosowany do widoku jednokulumnowego na mobile i wielokolumnowego na desktopie.
-*   **Props**: `appointment: Appointment`.
-*   **Układ wewnątrz kafelka (Flex/Grid)**:
-    *   **Góra**: Wyraźna godzina (np. tekst pogrubiony, duży) obok daty.
-    *   **Środek**: Nazwa klientki (kliknięcie może prowadzić do jej profilu), mała ikona telefonu. Poniżej mniejszym tekstem złączone nazwy usług (np. "Hybryda + Zdobienie").
-    *   **Dół**: Odznaka statusu (`AppointmentStatusBadge`) oraz kwota po prawej stronie wyjustowana.
-*   **Akcje**: Przycisk (ikona 'MoreHorizontal' z lucide-vue-next) otwierający DropdownMenu z akcjami: Edytuj, Usuń, Zmień Status.
-
-#### 3. `AppointmentForm.vue`
-*   Współdzielony komponent do dodawania i edycji.
-*   **Prop**: `form` (obiekt z Inertia useForm), `clients` (lista klientek), `priceItems` (lista usług).
-*   **Pola**:
-    *   **Klientka**: Użycie komponentu wyboru (Combobox/Select z wyszukiwaniem).
-    *   **Data i Godzina**: Systemowy `<input type="datetime-local">` (z odpowiednim stylowaniem shadcn) lub gotowy DateTimePicker.
-    *   **Usługi**: Multi-select lub lista checkboxów z nazwami i cenami minimalnymi.
-    *   **Cena**: Pole liczbowe (nadpisywane przez `useAppointmentPrice`, chyba że wpisane ręcznie).
-    *   **Status**: Select dla `AppointmentStatus` (przy edycji).
-    *   **Notatka**: `<Textarea>`.
-
-### 4.4 Strony (Views) (`resources/js/pages/Appointments/`)
-
-#### `Index.vue`
-*   Główny widok kalendarza/listy.
-*   **Logika Grupowania**: Dane z backendu to płaska lista wizyt. Komponent pobiera tę listę i w `computed()` property (np. `groupedAppointments`) grupuje je w obiekt/Mapę kluczowaną datą ("Dzisiaj", "Jutro", lub "25 Marca 2026").
-*   **Wyświetlanie**:
-    *   Pętla `v-for` po pogrupowanych datach, tworząca sekcje z nagłówkiem (Data).
-    *   Wewnątrz sekcji grid (`<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">`) renderujący `AppointmentCard`.
-*   **Usuwanie (Modal)**: Zgodnie z wytycznymi z innych widoków (np. `Inspirations/Index.vue`), należy użyć komponentu `Dialog` z `shadcn-vue` jako potwierdzenia usunięcia kafelka, zachowując ten sam styl "wyskakującego okienka" z overlayem i blur.
+### 4.2 Funkcje Interaktywne
+*   **Kliknięcie w dzień**: Natychmiastowe filtrowanie listy wizyt pod kalendarzem (lokalne).
+*   **Przytrzymanie dnia**: Automatyczne otwarcie modalu rezerwacji z predefiniowaną datą.
+*   **Szybka edycja**: Możliwość edycji i usuwania wizyt bezpośrednio z listy pod kalendarzem za pomocą Modali (Dialog), bez przeładowania strony.
 
 ---
 
-## 5. Wytyczne Kodowania i Stylu (Czysty Kod)
-1.  **Strict TypeScript**: Zawsze typuj właściwości, propsy, zdarzenia emitowane (emits) i reaktywne zmienne. Unikaj `any`.
-2.  **Kapsułkowanie (Encapsulation)**: Logika API, nawigacji Inertia i modale powinny żyć w "Stronach" (`Pages`), podczas gdy "Komponenty" (`Components`) powinny być jak najbardziej "głupie" (Dumb Components) i polegać na wstrzykiwanych Propsach i Emitowanych zdarzeniach.
-3.  **Spójność z Shadcn**: Korzystaj wyłącznie z zainstalowanych komponentów w `resources/js/components/ui/` do budowy formularzy, kart, odznak, przycisków i okien dialogowych.
-4.  **Mobile First**: Wszystkie klasy Tailwind (marginesy, paddingi, gap) zawsze układaj z myślą o telefonach (np. `p-4`), używając breakpointów dla większych ekranów (np. `sm:p-6`).
-
----
-Z dokumentacją gotową, implementację należy zacząć od **Bazy Danych (Migracje)**, przejść przez **Backend Core (Modele, Enums, Serwisy)**, a na końcu zbudować **Frontend (Typy, UI, Views)**.
+## 5. Wytyczne Kodowania i Stylu
+1.  **Strict TypeScript**: Zakaz używania `any`. Wykorzystanie Generyków dla payloadów eventów.
+2.  **Encapsulation**: Logika formularza zamknięta w `AppointmentForm.vue`, reużywalna w Modalu i na stronach.
+3.  **Mobile First**: Optymalizacja dotyku, blokada systemowych menu przy długim naciśnięciu.

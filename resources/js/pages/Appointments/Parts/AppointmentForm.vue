@@ -58,6 +58,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: 'submit'): void;
+    (e: 'cancel'): void;
 }>();
 
 // Client Selection Logic
@@ -191,7 +192,7 @@ const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
 
 const goBack = () => {
-    window.history.back();
+    emit('cancel');
 };
 
 const formatDateLabel = (val: DateValue | undefined) => {

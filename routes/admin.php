@@ -15,6 +15,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('appointments')->name('appointments.')->group(function () {
         Route::get('/', [AppointmentController::class, 'index'])->name('index');
+        Route::get('/calendar', [AppointmentController::class, 'calendar'])->name('calendar');
         Route::get('/create', [AppointmentController::class, 'create'])->name('create');
         Route::post('/', [AppointmentController::class, 'store'])->name('store');
         Route::get('/{appointment}/edit', [AppointmentController::class, 'edit'])->name('edit');
