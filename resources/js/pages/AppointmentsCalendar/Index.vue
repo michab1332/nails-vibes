@@ -119,7 +119,8 @@ const formatTime = (isoString: string) => {
 };
 
 const handleDateHold = (date: Date) => {
-  console.log('Date held:', format(date, 'yyyy-MM-dd'));
+  selectedDate.value = date;
+  openCreateModal();
 };
 </script>
 
